@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html ng-app="itemListApp">
+<head>
+    <title>Test task</title>
+    <script src="libs/angular.js"></script>
+    <link href="styles/style.css" rel="stylesheet">
+<!--    <link href="Libraries/bootstrap.css" rel="stylesheet" />
+    <link href="Libraries/bootstrap-theme.css" rel="stylesheet" />-->
+
+    <script>
+        // Модель
+
+        var model;
+        if(localStorage.obj){
+            model = JSON.parse(localStorage.obj);
+            console.log('not empty storage');
+            console.log(model);
+        }else{
+            model = {
+                items: [
+                   { name:"First item", comments: ["comment 1","comments 2"] }
+                ]
+            };
+            console.log('empty storage');
+        };
+
+        // Модуль
+
+        var itemListApp = angular.module("itemListApp", []);
+
+        // Контроллер
+
+        itemListApp.controller("ItemListCtrl", function ($scope) {
+
+            $scope.data = model;
+            $scope.actIndex = 1;
+            $scope.num = 0;
+            // Обработчик нажатия по кнопке
+            $scope.addItem = function () {
+                $scope.data.items.push({
+                    name: $scope.itemName,
+                    comments: []
+                });
+                
+               // localStorage.setItem("obj",$scope.data);
+                
+                $scope.itemName = "";
+                $scope.toStorage();
+            }
+            $scope.toStorage = function(){
+                localStorage.obj = JSON.stringify($scope.data);
+            }
+			$scope.delItem = function ($event) {
+               console.log($event.currentTarget.getAttribute("data-index"));
+                $scope.index = $event.currentTarget.getAttribute("data-index");
+               $scope.data.items.splice($scope.index,1);
+                console.log($scope.data);
+                $scope.toStorage();
+            }
+            
+            $scope.activeItem = function($event){
+                $scope.act = document.querySelector(".items_list .item.active");
+                $scope.act.classList.remove("active");
+                $event.currentTarget.classList.add("active");
+                $scope.actIndex = Number($event.currentTarget.getAttribute("data-item")) + 1;
+                //console.log($scope.actIndex);
+            }
+            
+            $scope.addComment = function($event){
+                $scope.data.items[$scope.actIndex-1].comments.push($scope.commText);
+                $scope.commText="";
+                $scope.toStorage();
+            }
+			
+        });
+
+    </script>
+
+</head>
+
+<body ng-controller="ItemListCtrl">
+    <aside>
+        <div>
+            <div class="first_row">
+                <div class="name">
+                    <p class="title">Main</p>
+                </div>
+            </div>
+            <div class="item_row curr">
+                <a href="#" class="home">
+                    <span>Overview</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    <div class="main">
+        <section class="items_cont">
+            <p class="headline">Items</p>
+            <div class="input_field">
+                <input type="text" placeholder="Type name here..." ng-model="itemName">
+                <input type="button" value="Add new" ng-click="addItem()">
+            </div>
+            <div class="items_list">
+                <div class="item"  ng-repeat="item in data.items track by $index"  ng-class="{'active': item == data.items[0]}" ng-click="activeItem($event)"  data-item="{{$index}}">
+                    <span>{{item.name}}</span>
+                    <span class="ammount">{{item.comments.length}}</span>
+                    <span class="delBtn" ng-click="delItem($event)" data-index="{{$index}}" ng-model="indexBtn">Delete</span>
+                </div>
+            </div>
+        </section>
+        <section class="comments_cont">
+            <p class="headline">Comments #<span>{{actIndex}}</span></p>
+            <div class="comment_block">
+                <div class="comment" ng-repeat="item in data.items track by $index">
+                   <!-- {{item.comments[$index]}}-->
+                    
+                    <div ng-if="item==data.items[actIndex-1]">
+                        <div class="innerItem" ng-repeat="innerItem in item.comments track by $index">
+                            <div class="avatar"></div>
+                            <div class="comm">{{innerItem}} </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="add_comment">
+                <div class="avatar"></div>
+                <div class="input_comm">
+                    <textarea rows="5" ng-model="commText"></textarea>
+                </div>
+                <div class="clearfix"></div>
+                <div class="add_comm" ng-click="addComment()">Add comment</div>
+            </div>
+        </section>
+    </div>
+  
+</body>
+</html>
